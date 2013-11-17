@@ -544,6 +544,14 @@ describe Admin::ContentController do
         Article.should_not be_exists({:id => draft.id})
         Article.should_not be_exists({:id => draft_2.id})
       end
+
+      # MGB: Specs Start
+      it 'should pass the current user as an admin user' do
+        post :edit, 'id' => @article.id, 'article' => { 'title' => 'new'}
+        assigns(:user).should == @user
+        assigns(:user).should be_admin
+      end
+      # MGB: Specs End
     end
 
     describe 'resource_add action' do
@@ -605,6 +613,7 @@ describe Admin::ContentController do
         response.should be_success
         response.body.should == '<ul class="unstyled" id="autocomplete"><li>bar</li><li>bazz</li></ul>'
       end
+
     end
 
   end

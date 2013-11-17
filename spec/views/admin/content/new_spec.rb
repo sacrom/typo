@@ -34,4 +34,39 @@ describe "admin/content/new.html.erb" do
     assign(:resources, [])
     render
   end
+
+  # MGB: Specs Start
+  it "admin user includes a Merge Articles" do
+    assign(:images, [])
+    assign(:macros, [])
+    assign(:resources, [])
+    assign(:user, stub_model(User, :admin? => true))
+
+    render
+
+    rendered.should contain("Merge Articles")
+  end
+
+  it "non-admin user must not include a Merge Articles" do
+    assign(:images, [])
+    assign(:macros, [])
+    assign(:resources, [])
+    assign(:user, stub_model(User, :admin? => false))
+
+    render
+
+    rendered.should_not contain("Merge Articles")
+  end
+
+  it "new article must not include a Merge Articles" do
+    assign(:images, [])
+    assign(:macros, [])
+    assign(:resources, [])
+    # The new article does not asign a user
+
+    render
+
+    rendered.should_not contain("Merge Articles")
+  end
+  # MGB: Specs End
 end
