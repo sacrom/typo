@@ -630,5 +630,43 @@ describe Article do
     end
 
   end
+
+  # MGB: Specs Start
+  describe "merge" do
+    before(:each) do
+      @user1 = Factory(:user, :login => 'user1', :notify_on_new_articles => true)
+      @user2 = Factory(:user, :login => 'user2', :notify_on_new_articles => true)
+      @article1 = Article.create!(:user => @user1, :title => "title 1", :body => "some text 1", :published => true)
+      @article2 = Article.create!(:user => @user2, :title => "title 2", :body => "some text 2", :published => true)
+      @comment1 = @article1.comments.create({:author => 'ComUser1',
+                :body => 'nice post',
+                :ip => '1.2.3.4'})
+      @comment2 = @article2.comments.create({:author => 'ComUser2',
+                :body => 'nice post',
+                :ip => '1.2.3.4'})
+    end
+
+    it "should return nil when one article does not exists" do
+      merged = Article.merge(@article1.id, 999)
+      merged.should be_nil
+    end
+
+    it "merged article should have a new id" do
+      merged = Article.merge(@article1.id, @article2.id)
+      assert_not_equal merged.id, @article1.id
+      assert_not_equal merged.id, @article2.id
+    end
+
+    it "merged article should have both articles content" do
+      merged = Article.merge(@article1.id, @article2.id)
+      merged.body.should eq(@article1.body + @article2.body)
+    end
+
+    it "merged article should have both articles coments" do
+      merged = Article.merge(@article1.id, @article2.id)
+      merged.comments.should == [@comment1, @comment2]
+    end
+  end
+  # MGB: Specs End
 end
 

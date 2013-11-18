@@ -38,6 +38,28 @@ class Admin::ContentController < Admin::BaseController
     new_or_edit
   end
 
+  def merge
+    if not current_user.admin?
+      redirect_to :action => 'index'
+      flash[:error] = _("Error, you are not allowed to perform this action")
+      return
+    end
+    if params[:id] == params[:merge_with]
+      redirect_to :action => 'index'
+      flash[:error] = _("Error, can't merge article with itself")
+      return
+    end
+    merged_article = Article.merge(params[:id], params[:merge_with])
+    if merged_article.nil?
+      redirect_to :action => 'index'
+      flash[:error] = _("Error, merging articles")
+      return
+    end
+    @article = merged_article
+    params[:id] = merged_article.id
+    new_or_edit
+  end
+
   def destroy
     @record = Article.find(params[:id])
 
@@ -143,6 +165,8 @@ class Admin::ContentController < Admin::BaseController
   def new_or_edit
     id = params[:id]
     id = params[:article][:id] if params[:article] && params[:article][:id]
+    params[:article] ||= {}
+
     @article = Article.get_or_build_article(id)
     @article.text_filter = current_user.text_filter if current_user.simple_editor?
 
@@ -186,6 +210,8 @@ class Admin::ContentController < Admin::BaseController
 
   def set_the_flash
     case params[:action]
+    when 'merge'
+      flash[:notice] = _('Articles were successfully merged')
     when 'new'
       flash[:notice] = _('Article was successfully created')
     when 'edit'

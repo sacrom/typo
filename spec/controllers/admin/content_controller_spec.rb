@@ -554,6 +554,41 @@ describe Admin::ContentController do
       # MGB: Specs End
     end
 
+    # MGB: Specs Start
+    describe 'merge action' do
+      before (:each) do
+        @article2 = Factory(:article, :id => @article.id + 1)
+      end
+
+      it 'should fail when merging the same article' do
+        post :merge, 'id' => @article.id, 'merge_with' => @article.id
+        flash[:error].should eq("Error, can't merge article with itself")
+        response.should redirect_to(:action => 'index')
+      end
+
+      it 'should fail when merge method from Article model returns a nil' do
+        Article.stub(:merge).and_return(nil)
+        post :merge, 'id' => @article.id, 'merge_with' => @article2.id
+        flash[:error].should eq("Error, merging articles")
+        response.should redirect_to(:action => 'index')
+      end
+
+      it 'should call the merge Model methods with the correct values' do
+        Article.should_receive(:merge).with(@article.id, @article2.id).and_return(nil)
+        post :merge, 'id' => @article.id, 'merge_with' => @article2.id
+      end
+
+      it 'should render the corectly merged article' do
+        article3 = Factory(:article, :id => @article2.id + 1, :parent_id => nil)
+        Article.stub(:merge).and_return(article3)
+        Article.stub(:get_or_build_article).and_return(article3)
+        post :merge, 'id' => @article.id, 'merge_with' => @article2.id
+        assigns(:article)[:id].should be article3.id
+        response.should redirect_to(:action => 'index')
+      end
+    end
+    # MGB: Specs End
+
     describe 'resource_add action' do
 
       it 'should add resource' do
@@ -679,5 +714,16 @@ describe Admin::ContentController do
       end
 
     end
+
+    # MGB: Specs Start
+    describe 'merge action' do
+      it 'should fail when non-admin user' do
+        post :merge, 'id' => @article.id, 'merge_with' => @article.id+1
+        flash[:error].should eq("Error, you are not allowed to perform this action")
+        response.should redirect_to(:action => 'index')
+      end
+    end
+    # MGB: Specs End
+
   end
 end

@@ -289,6 +289,33 @@ class Article < Content
     end
   end
 
+  # MGB: Start
+  def self.merge id1, id2
+    article1 = Article.find_by_id(id1)
+    return nil if article1.nil?
+    article2 = Article.find_by_id(id2)
+    return nil if article2.nil?
+
+    merged = Article.create(:title => article1.title,
+      :body => article1.body + article2.body,
+      :allow_comments => article1.allow_comments,
+      :allow_pings => article1.allow_pings,
+      :text_filter => article1.text_filter,
+      :published => true,
+      :published_comments => article1.published_comments + article2.published_comments)
+
+    # Force reload cache
+    merged.published_comments(true)
+
+    if merged
+      article1.destroy
+      article2.destroy
+    end
+
+    merged
+  end
+  # MGB: End
+
   # Finds one article which was posted on a certain date and matches the supplied dashed-title
   # params is a Hash
   def self.find_by_permalink(params)

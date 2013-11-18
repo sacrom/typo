@@ -8,6 +8,6 @@ Feature: Control merge Articles
     And two articles with comments are created
     And a non-admin user exists
     And I am logged as a non-admin user
-    When I am on edit first article page
+    When I am editing first article page
     Then I should not see "Merge Articles"
 
